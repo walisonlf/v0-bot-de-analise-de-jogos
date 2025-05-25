@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  football-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.secure
+    container_name: football-betting-bot-secure
+    restart: unless-stopped
+    
+    # Configuração de segurança
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    
+    # Usuário não-root
+    user: "1000:1000"
+    
+    # Variáveis de ambiente (usar secrets em produção)
+    environment:
+      - ODDS_API_KEY=${ODDS_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    
+    # Volumes com permissões restritas
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./config:/app/config:ro
+      - /tmp:/tmp:rw
+    
+    # Limites de recursos
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    
+    # Rede isolada
+    networks:
+      - bot-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "from src.config import Config; Config()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bot-network:
+    driver: bridge
+    internal: false

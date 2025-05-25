@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/analyze",
+      "schedule": "0 6,18 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/bot/analyze/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/analyze/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
